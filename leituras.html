@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leituras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0d0b;
+    --bg2: #161410;
+    --bg3: #1e1b17;
+    --border: #2e2a24;
+    --gold: #c9a84c;
+    --gold-dim: #7a6230;
+    --text: #e8e0d0;
+    --text-dim: #8a8070;
+    --text-mute: #4a4540;
+    --red: #c0392b;
+    --green: #5a8a6a;
+    --radius: 6px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .logo span { font-style: italic; font-weight: 600; }
+
+  .header-stats {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+
+  /* ── ADD BUTTON ── */
+  .btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.65rem 1.4rem;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.2s;
+    margin-bottom: 3rem;
+  }
+  .btn-add:hover { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(201, 168, 76, 0.06);
+  }
+
+  /* ── GRID ── */
+  .books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem;
+  }
+
+  /* ── BOOK CARD ── */
+  .book-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .book-card:hover { transform: translateY(-4px); }
+
+  .book-cover {
+    width: 100%;
+    aspect-ratio: 2/3;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 0.8rem;
+  }
+
+  .book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2rem;
+    text-align: center;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+
+  .status-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+  }
+  .status-lendo { background: rgba(201, 168, 76, 0.2); color: var(--gold); }
+  .status-lido { background: rgba(90, 138, 106, 0.2); color: var(--green); }
+  .status-quero { background: rgba(74, 69, 64, 0.4); color: var(--text-dim); }
+
+  .book-title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 0.2rem;
+  }
+
+  .book-author {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+  }
+
+  .stars {
+    display: flex;
+    gap: 2px;
+  }
+
+  .star { color: var(--gold); font-size: 0.75rem; }
+  .star.empty { color: var(--text-mute); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: var(--text-dim);
+  }
+  .empty-state h2 { font-size: 1.8rem; font-weight: 300; font-style: italic; margin-bottom: 0.5rem; }
+  .empty-state p { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text-mute); }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 7, 6, 0.92);
+    z-index: 200;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+    overflow-y: auto;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 680px;
+    padding: 2.5rem;
+    transform: translateY(20px);
+    transition: transform 0.25s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-title {
+    font-size: 1.6rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--gold);
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── FORM ── */
+  .form-row {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    padding: 0.65rem 0.9rem;
+    transition: border-color 0.15s;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: var(--gold-dim);
+  }
+  textarea { resize: vertical; min-height: 100px; }
+  select option { background: var(--bg2); }
+
+  /* ── COVER SEARCH ── */
+  .cover-search-wrap {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  .cover-results {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.8rem;
+  }
+  .cover-option {
+    width: 60px;
+    height: 90px;
+    object-fit: cover;
+    border: 2px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    background: var(--bg3);
+  }
+  .cover-option:hover { border-color: var(--gold-dim); }
+  .cover-option.selected { border-color: var(--gold); }
+  .cover-preview-wrap {
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+  }
+  .cover-preview {
+    width: 80px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    display: none;
+    flex-shrink: 0;
+  }
+  .cover-preview.show { display: block; }
+
+  /* ── STAR RATING INPUT ── */
+  .stars-input {
+    display: flex;
+    gap: 0.3rem;
+  }
+  .stars-input span {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-mute);
+    transition: color 0.1s;
+    user-select: none;
+  }
+  .stars-input span.on { color: var(--gold); }
+
+  /* ── MODAL ACTIONS ── */
+  .modal-actions {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.3rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .btn-ghost { background: transparent; border-color: var(--border); color: var(--text-dim); }
+  .btn-ghost:hover { border-color: var(--text-dim); color: var(--text); }
+  .btn-primary { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+  .btn-primary:hover { background: #e0ba5c; }
+  .btn-danger { background: transparent; border-color: #5a2020; color: var(--red); }
+  .btn-danger:hover { background: rgba(192, 57, 43, 0.1); }
+
+  /* ── VIEW MODAL (book detail) ── */
+  .view-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 2rem;
+  }
+  .view-cover {
+    width: 140px;
+    height: 210px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .view-cover-placeholder {
+    width: 140px;
+    height: 210px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-style: italic;
+    color: var(--text-mute);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 0.8rem;
+  }
+  .view-meta h2 { font-size: 1.8rem; font-weight: 600; line-height: 1.2; margin-bottom: 0.3rem; }
+  .view-meta .author { font-style: italic; color: var(--text-dim); margin-bottom: 1rem; }
+  .view-meta .status-line {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .view-notes {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .notes-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    margin-bottom: 0.6rem;
+  }
+
+  /* ── SHARE MODAL ── */
+  .share-text-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .share-buttons {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    text-decoration: none;
+    background: transparent;
+    color: var(--text-dim);
+    transition: all 0.15s;
+  }
+  .share-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .share-btn.copied { border-color: var(--green); color: var(--green); }
+
+  /* ── SEARCH INPUT ── */
+  .search-wrap {
+    margin-bottom: 2rem;
+  }
+  .search-input {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  /* ── LOADING ── */
+  .loading-dots::after {
+    content: '';
+    animation: dots 1.2s infinite;
+  }
+  @keyframes dots {
+    0%   { content: '.'; }
+    33%  { content: '..'; }
+    66%  { content: '...'; }
+  }
+
+  @media (max-width: 500px) {
+    header { padding: 1.2rem 1rem; }
+    main { padding: 1.5rem 1rem; }
+    .modal { padding: 1.5rem; }
+    .view-grid { grid-template-columns: 1fr; }
+    .books-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>L</span>eituras</div>
+  <div class="header-stats" id="headerStats">—</div>
+</header>
+
+<main>
+  <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <button class="btn-add" onclick="openAddModal()">＋ Registrar livro</button>
+    <div class="search-wrap" style="margin:0; flex:1; min-width:200px;">
+      <input type="text" class="search-input" id="searchInput" placeholder="Buscar por título ou autor…" oninput="renderBooks()">
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="todos" onclick="setFilter(this)">Todos</button>
+    <button class="filter-btn" data-filter="lendo" onclick="setFilter(this)">Lendo</button>
+    <button class="filter-btn" data-filter="lido" onclick="setFilter(this)">Lidos</button>
+    <button class="filter-btn" data-filter="quero" onclick="setFilter(this)">Quero ler</button>
+  </div>
+
+  <div class="books-grid" id="booksGrid"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <h2>Nenhum livro ainda.</h2>
+    <p>Registre sua primeira leitura.</p>
+  </div>
+</main>
+
+<!-- ── ADD / EDIT MODAL ── -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title" id="addModalTitle">Novo livro</div>
+
+    <div class="form-row">
+      <label>Título</label>
+      <input type="text" id="fTitle" placeholder="Nome do livro" oninput="autoSearchCover()">
+    </div>
+
+    <div class="form-row">
+      <label>Autor</label>
+      <input type="text" id="fAuthor" placeholder="Nome do autor">
+    </div>
+
+    <div class="form-row">
+      <label>Status</label>
+      <select id="fStatus">
+        <option value="quero">Quero ler</option>
+        <option value="lendo">Lendo</option>
+        <option value="lido">Lido</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>Capa</label>
+      <div class="cover-preview-wrap">
+        <img id="coverPreview" class="cover-preview" src="" alt="capa">
+        <div style="flex:1">
+          <div class="cover-search-wrap">
+            <input type="text" id="fCoverSearch" placeholder="Buscar capa no Google Books…">
+            <button class="btn btn-ghost" onclick="searchCovers()">Buscar</button>
+          </div>
+          <div class="cover-results" id="coverResults"></div>
+          <div style="margin-top:0.6rem;">
+            <label style="display:inline; margin-right:0.4rem;">ou URL direta:</label>
+            <input type="text" id="fCoverUrl" placeholder="https://..." oninput="previewDirectUrl()" style="margin-top:0.3rem;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Avaliação</label>
+      <div class="stars-input" id="starsInput">
+        <span data-v="1" onclick="setRating(1)">★</span>
+        <span data-v="2" onclick="setRating(2)">★</span>
+        <span data-v="3" onclick="setRating(3)">★</span>
+        <span data-v="4" onclick="setRating(4)">★</span>
+        <span data-v="5" onclick="setRating(5)">★</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Notas pessoais</label>
+      <textarea id="fNotes" placeholder="Impressões, passagens favoritas, reflexões…"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="btnDelete" style="display:none; margin-right:auto;" onclick="deleteBook()">Excluir</button>
+      <button class="btn btn-ghost" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveBook()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── VIEW MODAL ── -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal">
+    <div id="viewContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="margin-right:auto;" onclick="openShareModal()">↗ Compartilhar</button>
+      <button class="btn btn-ghost" onclick="closeModals()">Fechar</button>
+      <button class="btn btn-primary" onclick="editCurrentBook()">Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHARE MODAL ── -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <div class="modal-title">Compartilhar</div>
+    <div class="share-text-box" id="shareTextBox"></div>
+    <div class="share-buttons" id="shareButtons"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('shareModal').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let books = JSON.parse(localStorage.getItem('leituras_books') || '[]');
+let currentFilter = 'todos';
+let editingId = null;
+let currentViewId = null;
+let selectedRating = 0;
+let selectedCoverUrl = '';
+let coverSearchTimeout = null;
+
+// ── SAVE ──
+function save() {
+  localStorage.setItem('leituras_books', JSON.stringify(books));
+}
+
+// ── RENDER ──
+function renderBooks() {
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  const grid = document.getElementById('booksGrid');
+  const empty = document.getElementById('emptyState');
+
+  let filtered = books.filter(b => {
+    const matchFilter = currentFilter === 'todos' || b.status === currentFilter;
+    const matchSearch = !query || b.title.toLowerCase().includes(query) || (b.author||'').toLowerCase().includes(query);
+    return matchFilter && matchSearch;
+  });
+
+  // sort: lendo first, then lido, then quero
+  const order = { lendo: 0, lido: 1, quero: 2 };
+  filtered.sort((a, b) => (order[a.status]||2) - (order[b.status]||2));
+
+  if (filtered.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+  } else {
+    grid.style.display = 'grid';
+    empty.style.display = 'none';
+    grid.innerHTML = filtered.map(bookCard).join('');
+  }
+
+  // stats
+  const total = books.length;
+  const lidos = books.filter(b => b.status === 'lido').length;
+  const lendo = books.filter(b => b.status === 'lendo').length;
+  document.getElementById('headerStats').innerHTML =
+    `${total} livro${total !== 1 ? 's' : ''}\n${lidos} lido${lidos !== 1 ? 's' : ''} · ${lendo} lendo`;
+}
+
+function bookCard(b) {
+  const stars = starsHtml(b.rating || 0, true);
+  const statusLabel = { lendo: 'Lendo', lido: 'Lido', quero: 'Quero ler' }[b.status] || '';
+  const coverHtml = b.cover
+    ? `<img src="${esc(b.cover)}" alt="${esc(b.title)}" loading="lazy" onerror="this.style.display='none'">`
+    : `<div class="cover-placeholder">${esc(b.title)}</div>`;
+  return `
+    <div class="book-card" onclick="openViewModal('${b.id}')">
+      <div class="book-cover">
+        ${coverHtml}
+        <span class="status-badge status-${b.status}">${statusLabel}</span>
+      </div>
+      <div class="book-title">${esc(b.title)}</div>
+      ${b.author ? `<div class="book-author">${esc(b.author)}</div>` : ''}
+      <div class="stars">${stars}</div>
+    </div>`;
+}
+
+function starsHtml(n, small = false) {
+  let s = '';
+  for (let i = 1; i <= 5; i++) {
+    s += `<span class="star${i > n ? ' empty' : ''}">★</span>`;
+  }
+  return s;
+}
+
+function esc(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── FILTER ──
+function setFilter(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.filter;
+  renderBooks();
+}
+
+// ── ADD MODAL ──
+function openAddModal() {
+  editingId = null;
+  selectedRating = 0;
+  selectedCoverUrl = '';
+  document.getElementById('addModalTitle').textContent = 'Novo livro';
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fAuthor').value = '';
+  document.getElementById('fStatus').value = 'quero';
+  document.getElementById('fNotes').value = '';
+  document.getElementById('fCoverSearch').value = '';
+  document.getElementById('fCoverUrl').value = '';
+  document.getElementById('coverResults').innerHTML = '';
+  document.getElementById('coverPreview').classList.remove('show');
+  document.getElementById('btnDelete').style.display = 'none';
+  updateStarsInput();
+  document.getElementById('addModal').classList.add('open');
+}
+
+function editCurrentBook() {
+  closeModals();
+  const b = books.find(x => x.id === currentViewId);
+  if (!b) return;
+  editingId = b.id;
+  selectedRating = b.rating || 0;
+  selectedCoverUrl = b.cover || '';
+  document.getElementById('addModalTitle').textContent = 'Editar livro';
+  document.getElementById('fTitle').value = b.title;
+  document.getElementById('fAuthor').value = b.author || '';
+  document.getElementById('fStatus').value = b.status;
+  document.getElementById('fNotes').value = b.notes || '';
+  document.getElementById('fCoverSearch').value = '';
+  document.getElementById('fCoverUrl').value = b.cover || '';
+  document.getElementById('coverResults').innerHTML = '';
+  if (b.cover) {
+    const prev = document.getElementById('coverPreview');
+    prev.src = b.cover;
+    prev.classList.add('show');
+  } else {
+    document.getElementById('coverPreview').classList.remove('show');
+  }
+  document.getElementById('btnDelete').style.display = 'block';
+  updateStarsInput();
+  document.getElementById('addModal').classList.add('open');
+}
+
+// ── COVER SEARCH ──
+function autoSearchCover() {
+  clearTimeout(coverSearchTimeout);
+  coverSearchTimeout = setTimeout(() => {
+    const title = document.getElementById('fTitle').value.trim();
+    if (title.length > 2) {
+      document.getElementById('fCoverSearch').value = title;
+    }
+  }, 800);
+}
+
+async function searchCovers() {
+  const query = document.getElementById('fCoverSearch').value.trim();
+  if (!query) return;
+  const container = document.getElementById('coverResults');
+  container.innerHTML = '<span style="font-family:DM Mono,monospace;font-size:0.7rem;color:var(--text-mute)" class="loading-dots">Buscando</span>';
+
+  try {
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&fields=items(volumeInfo(imageLinks))`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data.items || [];
+    const covers = items
+      .map(i => i.volumeInfo?.imageLinks?.thumbnail || i.volumeInfo?.imageLinks?.smallThumbnail)
+      .filter(Boolean)
+      .map(u => u.replace('http://', 'https://').replace('zoom=1', 'zoom=2'));
+
+    if (covers.length === 0) {
+      container.innerHTML = '<span style="font-family:DM Mono,monospace;font-size:0.7rem;color:var(--text-mute)">Nenhuma capa encontrada.</span>';
+      return;
+    }
+
+    container.innerHTML = covers.map(c =>
+      `<img class="cover-option" src="${esc(c)}" onclick="selectCover('${c}')" onerror="this.style.display='none'">`
+    ).join('');
+  } catch(e) {
+    container.innerHTML = '<span style="font-family:DM Mono,monospace;font-size:0.7rem;color:var(--red)">Erro ao buscar.</span>';
+  }
+}
+
+function selectCover(url) {
+  selectedCoverUrl = url;
+  document.querySelectorAll('.cover-option').forEach(el => {
+    el.classList.toggle('selected', el.src === url || el.src.includes(url));
+  });
+  const prev = document.getElementById('coverPreview');
+  prev.src = url;
+  prev.classList.add('show');
+  document.getElementById('fCoverUrl').value = url;
+}
+
+function previewDirectUrl() {
+  const url = document.getElementById('fCoverUrl').value.trim();
+  selectedCoverUrl = url;
+  const prev = document.getElementById('coverPreview');
+  if (url) { prev.src = url; prev.classList.add('show'); }
+  else { prev.classList.remove('show'); }
+}
+
+// ── RATING ──
+function setRating(v) {
+  selectedRating = v;
+  updateStarsInput();
+}
+
+function updateStarsInput() {
+  document.querySelectorAll('#starsInput span').forEach(s => {
+    s.classList.toggle('on', parseInt(s.dataset.v) <= selectedRating);
+  });
+}
+
+// ── SAVE BOOK ──
+function saveBook() {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) { alert('Informe o título do livro.'); return; }
+
+  const cover = document.getElementById('fCoverUrl').value.trim() || selectedCoverUrl || '';
+
+  if (editingId) {
+    const idx = books.findIndex(b => b.id === editingId);
+    books[idx] = {
+      ...books[idx],
+      title,
+      author: document.getElementById('fAuthor').value.trim(),
+      status: document.getElementById('fStatus').value,
+      notes: document.getElementById('fNotes').value.trim(),
+      cover,
+      rating: selectedRating,
+      updatedAt: Date.now(),
+    };
+  } else {
+    books.unshift({
+      id: crypto.randomUUID(),
+      title,
+      author: document.getElementById('fAuthor').value.trim(),
+      status: document.getElementById('fStatus').value,
+      notes: document.getElementById('fNotes').value.trim(),
+      cover,
+      rating: selectedRating,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  }
+
+  save();
+  closeModals();
+  renderBooks();
+}
+
+// ── DELETE ──
+function deleteBook() {
+  if (!confirm('Excluir este livro do seu registro?')) return;
+  books = books.filter(b => b.id !== editingId);
+  save();
+  closeModals();
+  renderBooks();
+}
+
+// ── VIEW MODAL ──
+function openViewModal(id) {
+  currentViewId = id;
+  const b = books.find(x => x.id === id);
+  if (!b) return;
+
+  const statusLabel = { lendo: 'Lendo', lido: 'Lido', quero: 'Quero ler' }[b.status];
+  const coverHtml = b.cover
+    ? `<img class="view-cover" src="${esc(b.cover)}" alt="${esc(b.title)}" onerror="this.style.display='none'">`
+    : `<div class="view-cover-placeholder">sem capa</div>`;
+
+  document.getElementById('viewContent').innerHTML = `
+    <div class="view-grid">
+      ${coverHtml}
+      <div class="view-meta">
+        <h2>${esc(b.title)}</h2>
+        ${b.author ? `<div class="author">${esc(b.author)}</div>` : ''}
+        <div class="status-line">
+          <span class="status-badge status-${b.status}">${statusLabel}</span>
+          ${b.rating ? `<div class="stars">${starsHtml(b.rating)}</div>` : ''}
+        </div>
+      </div>
+    </div>
+    ${b.notes ? `
+      <div class="view-notes">
+        <div class="notes-label">Notas</div>
+        ${esc(b.notes)}
+      </div>` : ''}
+  `;
+
+  document.getElementById('viewModal').classList.add('open');
+}
+
+// ── SHARE ──
+function openShareModal() {
+  const b = books.find(x => x.id === currentViewId);
+  if (!b) return;
+
+  const stars = b.rating ? '★'.repeat(b.rating) + '☆'.repeat(5 - b.rating) : '';
+  const statusPhrase = {
+    lido: 'Terminei de ler',
+    lendo: 'Estou lendo',
+    quero: 'Quero ler',
+  }[b.status];
+
+  let text = `${statusPhrase}: "${b.title}"`;
+  if (b.author) text += ` — ${b.author}`;
+  if (stars) text += `\n${stars}`;
+  if (b.notes) {
+    const excerpt = b.notes.length > 160 ? b.notes.slice(0, 157) + '…' : b.notes;
+    text += `\n\n"${excerpt}"`;
+  }
+  text += `\n\n#leituras #livros`;
+
+  document.getElementById('shareTextBox').textContent = text;
+
+  const encoded = encodeURIComponent(text);
+  document.getElementById('shareButtons').innerHTML = `
+    <button class="share-btn" id="btnCopy" onclick="copyShare()">⎘ Copiar texto</button>
+    <a class="share-btn" href="https://twitter.com/intent/tweet?text=${encoded}" target="_blank">𝕏 Twitter/X</a>
+    <a class="share-btn" href="https://wa.me/?text=${encoded}" target="_blank">WhatsApp</a>
+    <a class="share-btn" href="https://www.threads.net/intent/post?text=${encoded}" target="_blank">Threads</a>
+    <a class="share-btn" href="https://bsky.app/intent/compose?text=${encoded}" target="_blank">Bluesky</a>
+  `;
+
+  document.getElementById('shareModal').classList.add('open');
+}
+
+function copyShare() {
+  const text = document.getElementById('shareTextBox').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btnCopy');
+    btn.textContent = '✓ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '⎘ Copiar texto'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── CLOSE ──
+function closeModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+}
+
+// close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModals();
+  });
+});
+
+// close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModals();
+});
+
+// ── INIT ──
+renderBooks();
+</script>
+</body>
+</html>
